@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+
+import sys
+import os
+import argparse
+import boto3
+
+
+def get_instance_name(instance):
+    for tag in instance.tags:
+        if tag['Key'] == 'Name':
+            return tag['Value']
+
+    return None
+
+
+def ssh_entry(keys_path, instance):
+    name = get_instance_name(instance)
+
+    if name is None:
+        return None
+
+    # use ip address so we don't have to go through DNS
+    hostname = instance.public_ip_address
+    key = instance.key_name
+
+    # TODO: get the user from aws too
+    user = 'ubuntu'
+
+    return """
+    Host {}
+        HostName {}
+        IdentityFile {}
+        User {}
+    """.format(name, hostname, os.path.join(keys_path, key), user)
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'keys_path', help='Path where the ssh keys live.'
+    )
+    args = parser.parse_args()
+
+    ec2 = boto3.resource('ec2')
+
+    for instance in ec2.instances.all():
+        entry = ssh_entry(args.keys_path, instance)
+
+        if entry is None:
+            sys.stderr.write(
+                'Could not create entry for instance {}, '
+                'it has no name.\n'.format(instance.id)
+            )
+
+        else:
+            print(entry)
