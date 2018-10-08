@@ -44,8 +44,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ec2 = boto3.resource('ec2')
+    running_instances = ec2.instances.filter(
+        Filters=[{'Name': 'instance-state-name', 'Values': ['running']}]
+    )
 
-    for instance in ec2.instances.all():
+    for instance in running_instances:
         entry = ssh_entry(args.keys_path, instance)
 
         if entry is None:
