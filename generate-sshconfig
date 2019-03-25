@@ -27,6 +27,9 @@ def ssh_entry(keys_path, instance):
     # TODO: get the user from aws too
     user = 'ubuntu'
 
+    if key is None:
+        return None
+
     return """
     Host {}
         HostName {}
@@ -54,7 +57,7 @@ if __name__ == '__main__':
         if entry is None:
             sys.stderr.write(
                 'Could not create entry for instance {}, '
-                'it has no name.\n'.format(instance.id)
+                'it has no name or ssh key.\n'.format(instance.id)
             )
 
         else:
