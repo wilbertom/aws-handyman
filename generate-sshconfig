@@ -33,7 +33,7 @@ def ssh_entry(keys_path, instance):
     return """
     Host {}
         HostName {}
-        IdentityFile {}
+        IdentityFile {}.pem
         User {}
     """.format(name, hostname, os.path.join(keys_path, key), user)
 
